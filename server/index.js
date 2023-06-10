@@ -41,7 +41,7 @@ app.post("/send", (req, res) => {
   console.log(message);
   console.log(signature);
   console.log(publicKey);
-  if(verifySignature(signature, message,publicKey)){
+  if(verifySignature(signature, message,publicKey,sender)){
   setInitialBalance(sender);
   setInitialBalance(recipient);
 
@@ -99,11 +99,18 @@ function hashMessage(message) {
   return hash;
 }
 
-function verifySignature(signature, message,publicKey){
+function verifySignature(signature, message,publicKey,sender){
   console.log(signature);
   console.log(message);
   console.log(publicKey);
-  let bool = secp256k1.verify(signature, hashMessage(message), hexToBytes(publicKey));
+  publicKey =  hexToBytes(publicKey)
+  let firstByte = publicKey.slice(0,1);
+  let rest = publicKey.slice(1,publicKey.length + 1);
+  let hash = keccak256(rest);
+  const address = hash.slice(-20);
+  console.log(toHex(address));
+  console.log(sender)
+  let bool = secp256k1.verify(signature, hashMessage(message), publicKey);
   console.log("Bool value", bool)
-  return bool
+  return bool && ("0x"+toHex(address) === sender);
 }
